@@ -19,9 +19,11 @@ import path from "path";
 import yaml from "yaml";
 
 // NOTE This is basically a "Math" class that aligns with our
-// MathSum and MathSquare structs in our programs
+// MathSum, MathSquare, Calculator Account structs in our programs
 
-// 1. Get the keypair from our local config
+/*
+ * 1. Get the keypair from our local config
+ */
 const CONFIG_FILE_PATH = path.resolve(
   os.homedir(),
   ".config",
@@ -34,16 +36,19 @@ let connection: Connection;
 let localKeypair: Keypair; // Wallet?
 let programKeypair: Keypair;
 let programId: PublicKey;
-let clientPubKey: PublicKey;
+let clientAccountPubkey: PublicKey;
 
+/*
+ * 2. Get the keypair from our program (path at this point)
+ */
 // let PROGRAM_FILE_PATH = path.resolve(__dirname, "../../dist/program");
 let PROGRAM_FILE_PATH = path.resolve(
   __dirname,
-  "../programs" // <programName>/target/deploy is full path
+  "../programs" // src/programs/<programName>/target/deploy is full path
 );
 
 /*
- * Connect to cluster
+ * 3. Connect to cluster
  */
 export async function connect() {
   connection = new Connection("http://localhost:8899", "confirmed");
@@ -51,7 +56,7 @@ export async function connect() {
 }
 
 /*
- * Use local keypair (account) for client
+ * 4. Use local keypair (account) for Client
  */
 export async function getLocalAccount() {
   const configYml = await fs.readFile(CONFIG_FILE_PATH, { encoding: "utf8" });
@@ -71,7 +76,7 @@ export async function getLocalAccount() {
 }
 
 /*
- * Get the targeted program we intend to transact with
+ * 5. Get the targeted program we intend to transact with
  */
 export async function getProgram(programName: string) {
   // NOTE PROGRAM_FILE_PATH points to 'programs' dir
@@ -94,7 +99,7 @@ export async function getProgram(programName: string) {
 }
 
 /*
- * Configure the client account and make the program be the account owner
+ * 6. Configure the client account and make the program be the account owner
  * The client account stores the data!
  * The client account is the data account!
  * This account is going to hit our program, and the program is going to
@@ -125,7 +130,7 @@ export async function configureClientAccount(accountSpaceSize: number) {
   // programId the OWNER of this account that we create! Recall that this
   // is required in order for the program to transact and modify this
   // account's data! (if account.owner != program_id in lib.rs)
-  clientPubKey = await PublicKey.createWithSeed(
+  clientAccountPubkey = await PublicKey.createWithSeed(
     localKeypair.publicKey,
     SEED,
     programId
@@ -133,10 +138,10 @@ export async function configureClientAccount(accountSpaceSize: number) {
 
   console.log("For simplicity's sake, we've created an address using a seed.");
   console.log("The generated address is: ");
-  console.log(`   ${clientPubKey.toBase58()}`);
+  console.log(`   ${clientAccountPubkey.toBase58()}`);
 
   // Make sure the account doesn't exist already
-  const clientAccount = await connection.getAccountInfo(clientPubKey);
+  const clientAccount = await connection.getAccountInfo(clientAccountPubkey);
   if (clientAccount === null) {
     console.log("Looks like that account does not exist. Let's create it.");
 
@@ -145,7 +150,7 @@ export async function configureClientAccount(accountSpaceSize: number) {
         fromPubkey: localKeypair.publicKey,
         basePubkey: localKeypair.publicKey,
         seed: SEED,
-        newAccountPubkey: clientPubKey,
+        newAccountPubkey: clientAccountPubkey,
         lamports: LAMPORTS_PER_SOL,
         space: accountSpaceSize,
         programId, // Owner of this new account
@@ -162,7 +167,7 @@ export async function configureClientAccount(accountSpaceSize: number) {
 }
 
 /*
- * Ping/transact with the program
+ * 7. Ping/transact with the program
  */
 export async function pingProgram(operation: number, operation_value: number) {
   console.log("Okay, let's run it.");
@@ -179,7 +184,7 @@ export async function pingProgram(operation: number, operation_value: number) {
   );
 
   const instruction = new TransactionInstruction({
-    keys: [{ pubkey: clientPubKey, isSigner: false, isWritable: true }],
+    keys: [{ pubkey: clientAccountPubkey, isSigner: false, isWritable: true }],
     programId,
     data: calculatorInstructions,
   });
@@ -194,7 +199,7 @@ export async function pingProgram(operation: number, operation_value: number) {
 }
 
 /*
- * Run the example (essentially our main method)
+ * 8. Run the example (essentially our main method)
  */
 export async function runExample(
   programName: string,
