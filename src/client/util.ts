@@ -1,4 +1,3 @@
-// TODO Go through this part and try to understand
 import { Keypair } from "@solana/web3.js";
 import fs from "mz/fs";
 import * as BufferLayout from "@solana/buffer-layout";
@@ -14,6 +13,13 @@ export async function createKeypairFromFile(
   const secretKey = Uint8Array.from(JSON.parse(secretKeyString));
   return Keypair.fromSecretKey(secretKey);
 }
+
+// Alternate syntax:
+// export function createKeypairFromFile(filepath: string): Keypair {
+//   return Keypair.fromSecretKey(
+//     Buffer.from(JSON.parse(fs.readFileSync(filepath, "utf-8")))
+//   );
+// }
 
 export async function getStringForInstruction(
   operation: number,
