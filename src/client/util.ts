@@ -1,4 +1,4 @@
-import { Keypair } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import fs from "mz/fs";
 import * as BufferLayout from "@solana/buffer-layout";
 import { Buffer } from "buffer";
@@ -20,6 +20,17 @@ export async function createKeypairFromFile(
 //     Buffer.from(JSON.parse(fs.readFileSync(filepath, "utf-8")))
 //   );
 // }
+
+export async function sendLamports(
+  from: Keypair,
+  to: PublicKey,
+  amount: number
+) {
+  let data = Buffer.alloc(8); // 8 bytes
+  BufferLayout.ns64("value").encode(amount, data);
+
+  let instruction;
+}
 
 export async function getStringForInstruction(
   operation: number,

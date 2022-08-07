@@ -22,7 +22,7 @@ entrypoint!(process_instruction);
 
 fn process_instruction(
     program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    accounts: &[AccountInfo], // TransactionInstruction clientAccount!
     instruction_data: &[u8],
 ) -> ProgramResult {
 
